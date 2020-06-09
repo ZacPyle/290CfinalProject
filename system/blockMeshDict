@@ -1,0 +1,126 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1912                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// This generates an axisymmetric cylinder mesh. The top of the cylinder (ceiling)
+// is one patch, while the bottom (floor) is two patches; a circle inside an anulus.
+// This is so the inner circle can be heated while the anulus is treated as an
+// adiabatic wall. Adding more cells in the x2 direction refines the grid axially,
+// adding more cells in the x1 direction refines the grid radially.
+
+scale   1;
+
+// num and negNum correspond to the curvatuve points for the outer circle
+// r and negr correspond to curvature points for inner circle. h is the
+// height of the cylinder
+num     0.3536;
+negNum  -0.3535;
+r       0.1591;
+negr    -0.1591;
+h       0.1;
+
+vertices
+(
+
+    // Main vertices for the outer cylinder domain
+    (0 0 0)
+    (0 $h 0)
+    (0 $h 0.5)
+    (0 0 0.5)
+    (0.5 0 0)
+    (0.5 $h 0)
+    (0.5 $h 0.5)
+    (0.5 0 0.5)
+
+
+);
+
+blocks
+(
+    // Create the inner circle for an axisymmetric mesh
+    hex (0 1 2 3 4 5 6 7) (35 35 35) simpleGrading (1 1 1)
+
+);
+
+edges
+(
+);
+
+boundary
+(
+
+  floor
+  {
+        type wall;
+        faces
+        (
+            (3 0 4 7)
+        );
+  }
+
+  ceiling
+  {
+        type wall;
+        faces
+        (
+            (1 2 6 5)
+        );
+  }
+
+  patch0_half0
+  {
+      type cyclic;
+      neighbourPatch  patch0_half1;
+      faces
+      (
+        (4 5 6 7)
+      );
+  }
+
+  patch0_half1
+  {
+      type cyclic;
+      neighbourPatch  patch0_half0;
+      faces
+      (
+        (3 2 1 0)
+      );
+  }
+
+  patch1_half0
+  {
+      type cyclic;
+      neighbourPatch  patch1_half1;
+      faces
+      (
+        (0 1 5 4)
+      );
+  }
+
+  patch1_half1
+  {
+      type cyclic;
+      neighbourPatch  patch1_half0;
+      faces
+      (
+        (3 7 6 2)
+      );
+  }
+);
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
